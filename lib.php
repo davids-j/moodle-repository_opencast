@@ -189,21 +189,28 @@ class repository_opencast extends repository {
         }
 
         // Automatically find a suitable video.
+        $video_quality = 0;
         foreach ($publication->media as $media) {
-
             if (!empty($media->has_video)) {
-                $video->url = $media->url;
-                // Check mimetype needed for embedding in moodle.
-                $ending = pathinfo($media->url, PATHINFO_EXTENSION);
-                $existingending = pathinfo($video->title, PATHINFO_EXTENSION);
-                if ($ending !== $existingending) {
-                    $video->title .= '.' . $ending;
+                $tmp_tag = explode('-', $media->tags[0]);
+                $tmp_q = str_replace('p', '', $tmp_tag[0]);
+                if($tmp_q > $video_quality) {
+                    $video_quality = $tmp_q;
+                    $video->url = $media->url;
+                    // Check mimetype needed for embedding in moodle.
+                    $ending = pathinfo($media->url, PATHINFO_EXTENSION);
+                    $existingending = pathinfo($video->title, PATHINFO_EXTENSION);
+                    if ($ending !== $existingending) {
+                        $video->title .= '.' . $ending;
+                    }
                 }
-                return true;
             }
         }
-
-        return false;
+        if($video_quality > 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
